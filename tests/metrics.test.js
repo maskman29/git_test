@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { seedCompanies } from "../src/data.js";
 import {
   enrichCompany,
   formatAmount,
@@ -65,4 +66,8 @@ test("絶対値ベースでチャート最大値を返す", () => {
 test("貸借対照表の整合性を許容差内で検証する", () => {
   assert.equal(validateBalance(dynam), true);
   assert.equal(validateBalance({ ...dynam, assets: 140000 }), false);
+});
+
+test("PDFから登録した全企業の貸借が一致する", () => {
+  seedCompanies.forEach((company) => assert.equal(validateBalance(company), true, company.name));
 });

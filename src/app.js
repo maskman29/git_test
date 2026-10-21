@@ -13,7 +13,7 @@ const STORAGE_KEY = "ir-scope-companies-v1";
 const MAX_SELECTED = 4;
 const state = {
   companies: loadCompanies(),
-  selectedIds: new Set(["dynam-2026"]),
+  selectedIds: new Set(seedCompanies.slice(0, MAX_SELECTED).map((company) => company.id)),
   chartMetric: "revenue",
   healthCompanyId: "dynam-2026"
 };
