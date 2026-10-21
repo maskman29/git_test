@@ -14,7 +14,8 @@ const MAX_SELECTED = 4;
 const state = {
   companies: loadCompanies(),
   selectedIds: new Set(["dynam-2026"]),
-  chartMetric: "revenue"
+  chartMetric: "revenue",
+  healthCompanyId: "dynam-2026"
 };
 
 const els = {
@@ -24,6 +25,9 @@ const els = {
   chart: document.querySelector("#comparison-chart"),
   chartMetric: document.querySelector("#chart-metric"),
   insightList: document.querySelector("#insight-list"),
+  healthCompanyTabs: document.querySelector("#health-company-tabs"),
+  stabilityGrid: document.querySelector("#stability-grid"),
+  growthGrid: document.querySelector("#growth-grid"),
   tableHead: document.querySelector("#comparison-head"),
   tableBody: document.querySelector("#comparison-body"),
   sourceList: document.querySelector("#source-list"),
@@ -147,6 +151,137 @@ function renderInsights(companies) {
   `).join("");
 }
 
+const stabilityIndicators = [
+  {
+    key: "equityRatio",
+    label: "自己資本比率",
+    formula: "純資産 ÷ 総資産",
+    description: "返済不要の自己資本が総資産に占める割合。一般に高いほど財務基盤が安定しています。",
+    assess: (value) => higherIsBetter(value, 50, 30)
+  },
+  {
+    key: "currentRatio",
+    label: "流動比率",
+    formula: "流動資産 ÷ 流動負債",
+    description: "1年以内の支払いに対し、短期で現金化しやすい資産をどれだけ持つかを示します。",
+    assess: (value) => higherIsBetter(value, 200, 100)
+  },
+  {
+    key: "currentAssetRatio",
+    label: "流動資産比率",
+    formula: "流動資産 ÷ 総資産",
+    description: "総資産に占める流動資産の割合。高低の良し悪しは、設備型かサービス型かなど業種で異なります。",
+    assess: () => ({ label: "構成比", tone: "neutral" })
+  },
+  {
+    key: "debtToEquityRatio",
+    label: "負債比率",
+    formula: "負債合計 ÷ 純資産",
+    description: "自己資本に対して負債をどれほど利用しているかを示します。低いほど返済負担は小さくなります。",
+    assess: (value) => lowerIsBetter(value, 100, 200)
+  },
+  {
+    key: "cashRatio",
+    label: "現金比率",
+    formula: "現金及び預金 ÷ 流動負債",
+    description: "短期の支払いを手元現金だけでどの程度まかなえるかを見る、厳しめの安全性指標です。",
+    assess: (value) => higherIsBetter(value, 100, 50)
+  },
+  {
+    key: "fixedRatio",
+    label: "固定比率",
+    formula: "固定資産 ÷ 純資産",
+    description: "長期利用する固定資産を自己資本でどの程度まかなっているかを示します。一般に低いほど安定的です。",
+    assess: (value) => lowerIsBetter(value, 100, 120)
+  }
+];
+
+const growthIndicators = [
+  {
+    key: "revenueGrowth",
+    label: "営業収入成長率",
+    formula: "（当期－前期）÷ 前期",
+    description: "前年から営業収入がどれだけ増減したかを示します。複数年度を同じ会計基準で比べることが重要です。",
+    assess: (value) => growthAssessment(value)
+  },
+  {
+    key: "operatingProfitGrowth",
+    label: "営業利益成長率",
+    formula: "（当期－前期）÷ 前期",
+    description: "本業の利益が前年からどれだけ増減したかを示します。一時要因の有無も併せて確認します。",
+    assess: (value) => growthAssessment(value)
+  },
+  {
+    key: "roa",
+    label: "ROA（総資産利益率）",
+    formula: "当期純利益 ÷ 総資産",
+    description: "保有する資産を使ってどれだけ利益を生み出したかを示す、資産効率の指標です。",
+    assess: () => ({ label: "資産効率", tone: "neutral" })
+  },
+  {
+    key: "safetyMarginRatio",
+    label: "安全余裕率",
+    formula: "（営業収入－損益分岐点）÷ 営業収入",
+    description: "売上が何％減ると赤字になるかの余裕度です。高いほど売上減少への耐性があります。",
+    assess: (value) => higherIsBetter(value, 20, 10)
+  }
+];
+
+function higherIsBetter(value, strong, moderate) {
+  if (!Number.isFinite(value)) return { label: "データ不足", tone: "missing" };
+  if (value >= strong) return { label: "余力あり", tone: "positive" };
+  if (value >= moderate) return { label: "一定水準", tone: "neutral" };
+  return { label: "要確認", tone: "caution" };
+}
+
+function lowerIsBetter(value, strong, moderate) {
+  if (!Number.isFinite(value)) return { label: "データ不足", tone: "missing" };
+  if (value <= strong) return { label: "負担小", tone: "positive" };
+  if (value <= moderate) return { label: "一定水準", tone: "neutral" };
+  return { label: "要確認", tone: "caution" };
+}
+
+function growthAssessment(value) {
+  if (!Number.isFinite(value)) return { label: "前年値が必要", tone: "missing" };
+  if (value >= 5) return { label: "成長", tone: "positive" };
+  if (value >= 0) return { label: "横ばい", tone: "neutral" };
+  return { label: "減少", tone: "caution" };
+}
+
+function renderHealth(companies) {
+  if (!companies.some((company) => company.id === state.healthCompanyId)) {
+    state.healthCompanyId = companies[0].id;
+  }
+  const company = companies.find((item) => item.id === state.healthCompanyId) || companies[0];
+  els.healthCompanyTabs.innerHTML = companies.map((item, index) => `
+    <button type="button" class="health-tab ${item.id === company.id ? "active" : ""}" data-health-id="${item.id}">
+      <span style="background:${palette[index % palette.length]}"></span>${escapeHtml(item.shortName || item.name)}
+    </button>
+  `).join("");
+  els.healthCompanyTabs.querySelectorAll("[data-health-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.healthCompanyId = button.dataset.healthId;
+      renderHealth(companies);
+    });
+  });
+  els.stabilityGrid.innerHTML = renderIndicatorCards(stabilityIndicators, company);
+  els.growthGrid.innerHTML = renderIndicatorCards(growthIndicators, company);
+}
+
+function renderIndicatorCards(definitions, company) {
+  return definitions.map((indicator) => {
+    const value = company[indicator.key];
+    const assessment = indicator.assess(value);
+    return `<article class="indicator-card ${assessment.tone}">
+      <div class="indicator-top"><span class="assessment-dot"></span><span class="assessment">${assessment.label}</span></div>
+      <p>${indicator.label}</p>
+      <strong>${formatRatio(value)}</strong>
+      <span class="formula">${indicator.formula}</span>
+      <small>${indicator.description}</small>
+    </article>`;
+  }).join("");
+}
+
 function renderTable(companies) {
   els.tableHead.innerHTML = `<tr><th>指標</th>${companies.map((company, index) => `
     <th><span class="table-company-dot" style="background:${palette[index % palette.length]}"></span>${escapeHtml(company.shortName || company.name)}<small>${escapeHtml(company.period)}</small></th>
@@ -177,6 +312,7 @@ function render() {
   renderKpis(companies);
   renderChart(companies);
   renderInsights(companies);
+  renderHealth(companies);
   renderTable(companies);
   renderSources(companies);
 }
@@ -194,6 +330,7 @@ function handleSubmit(event) {
   event.preventDefault();
   const formData = new FormData(els.form);
   const numericKeys = ["revenue", "operatingProfit", "ordinaryProfit", "netIncome", "assets", "liabilities", "equity", "currentAssets", "currentLiabilities"];
+  const optionalNumericKeys = ["cash", "previousRevenue", "previousOperatingProfit", "breakEvenRevenue"];
   const company = {
     id: `custom-${Date.now()}`,
     name: formData.get("name").trim(),
@@ -206,6 +343,10 @@ function handleSubmit(event) {
     locked: false
   };
   numericKeys.forEach((key) => { company[key] = Number(formData.get(key)); });
+  optionalNumericKeys.forEach((key) => {
+    const value = formData.get(key);
+    company[key] = value === "" ? null : Number(value);
+  });
 
   if (!validateBalance(company)) {
     els.formError.textContent = "総資産と「負債合計＋純資産合計」が一致していません（許容差1百万円）。";

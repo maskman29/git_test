@@ -4,6 +4,7 @@ import {
   enrichCompany,
   formatAmount,
   formatRatio,
+  growthRate,
   maxAbsolute,
   safeRatio,
   validateBalance
@@ -26,12 +27,29 @@ test("ダイナムの主要比率を計算できる", () => {
   assert.equal(result.netMargin.toFixed(1), "2.8");
   assert.equal(result.equityRatio.toFixed(1), "61.0");
   assert.equal(result.currentRatio.toFixed(1), "135.4");
+  assert.equal(result.currentAssetRatio.toFixed(1), "30.4");
+  assert.equal(result.debtToEquityRatio.toFixed(1), "64.0");
+  assert.equal(result.roa.toFixed(1), "2.3");
 });
 
 test("ゼロ除算と不正値を安全に扱う", () => {
   assert.equal(safeRatio(1, 0), null);
   assert.equal(safeRatio(Number.NaN, 100), null);
   assert.equal(formatRatio(null), "—");
+});
+
+test("成長率と安全余裕率を任意データから計算できる", () => {
+  assert.equal(growthRate(120, 100), 20);
+  assert.equal(growthRate(100, 0), null);
+  const result = enrichCompany({ ...dynam, previousRevenue: 100000, previousOperatingProfit: 4000, breakEvenRevenue: 90000 });
+  assert.equal(result.revenueGrowth.toFixed(1), "8.3");
+  assert.equal(result.operatingProfitGrowth.toFixed(1), "5.8");
+  assert.equal(result.safetyMarginRatio.toFixed(1), "16.9");
+});
+
+test("現金情報がない場合は現金比率を推測しない", () => {
+  assert.equal(enrichCompany(dynam).cashRatio, null);
+  assert.equal(enrichCompany({ ...dynam, cash: 25018 }).cashRatio.toFixed(1), "83.4");
 });
 
 test("数値を日本語形式で表示する", () => {

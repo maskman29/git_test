@@ -15,6 +15,7 @@
       </a>
       <nav aria-label="メインナビゲーション">
         <a class="active" href="#overview">企業比較</a>
+        <a href="#health">安定性・将来性</a>
         <a href="#details">財務詳細</a>
         <a href="#sources">出典</a>
       </nav>
@@ -64,6 +65,9 @@
                 <option value="netIncome">当期純利益</option>
                 <option value="assets">総資産</option>
                 <option value="equityRatio">自己資本比率</option>
+                <option value="currentRatio">流動比率</option>
+                <option value="currentAssetRatio">流動資産比率</option>
+                <option value="debtToEquityRatio">負債比率</option>
               </select>
             </label>
           </div>
@@ -74,6 +78,31 @@
           <p class="section-label">QUICK READ</p><h2>数字の読みどころ</h2>
           <div id="insight-list" class="insight-list"></div>
         </aside>
+      </section>
+
+      <section class="health-section" id="health" aria-labelledby="health-title">
+        <div class="section-heading health-heading">
+          <div>
+            <p class="section-label">STABILITY & GROWTH</p>
+            <h2 id="health-title">安定性と将来性</h2>
+          </div>
+          <p class="health-disclaimer">業種や成長段階によって適正値は異なります。各指標は投資判断ではなく、比較の手がかりとしてご利用ください。</p>
+        </div>
+        <div class="health-company-tabs" id="health-company-tabs" aria-label="分析する企業"></div>
+        <div class="health-groups">
+          <article class="health-group">
+            <div class="health-group-title"><span>01</span><div><p>FINANCIAL STABILITY</p><h3>財務の安定性</h3></div></div>
+            <div class="indicator-grid" id="stability-grid"></div>
+          </article>
+          <article class="health-group growth-group">
+            <div class="health-group-title"><span>02</span><div><p>GROWTH POTENTIAL</p><h3>成長性・収益余力</h3></div></div>
+            <div class="indicator-grid" id="growth-grid"></div>
+          </article>
+        </div>
+        <div class="formula-note">
+          <strong>安全余裕率とは？</strong>
+          <p>実際の営業収入が損益分岐点売上高をどれだけ上回っているかを示します。計算式は「（営業収入－損益分岐点売上高）÷営業収入」です。損益分岐点の記載がない資料では推測せず、データ不足と表示します。</p>
+        </div>
       </section>
 
       <section class="table-section" aria-labelledby="table-title">
@@ -114,6 +143,11 @@
           <label>純資産合計<input name="equity" required type="number" min="0" step="1" placeholder="0" /></label>
           <label>流動資産<input name="currentAssets" required type="number" min="0" step="1" placeholder="0" /></label>
           <label>流動負債<input name="currentLiabilities" required type="number" min="0" step="1" placeholder="0" /></label>
+          <div class="form-divider wide"><span>詳細分析用（任意）</span></div>
+          <label>現金及び預金<input name="cash" type="number" min="0" step="1" placeholder="未入力でも可" /></label>
+          <label>前年の営業収入<input name="previousRevenue" type="number" min="0" step="1" placeholder="未入力でも可" /></label>
+          <label>前年の営業利益<input name="previousOperatingProfit" type="number" step="1" placeholder="未入力でも可" /></label>
+          <label>損益分岐点売上高<input name="breakEvenRevenue" type="number" min="0" step="1" placeholder="未入力でも可" /></label>
           <label class="wide">出典名<input name="source" required maxlength="80" placeholder="例：第10期 決算公告" /></label>
         </div>
         <p class="form-error" id="form-error" role="alert"></p>
