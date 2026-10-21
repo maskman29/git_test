@@ -45,8 +45,21 @@ export const seedCompanies = [
     currentLiabilities: 8477,
     cash: 9239,
     interestBearingDebt: 8033,
+    previousPeriod: "2024年12月期",
+    previousSourceFile: "44_finance.pdf",
+    previousRevenue: 103184,
+    previousOperatingProfit: 1034,
+    previousOrdinaryProfit: 998,
+    previousNetIncome: 515,
+    previousAssets: 32652,
+    previousLiabilities: 16770,
+    previousEquity: 15883,
+    previousCurrentAssets: 16919,
+    previousCurrentLiabilities: 8817,
+    previousCash: 10704,
     notes: [
-      "原資料の単位は円です。アプリでは各数値を百万円単位に四捨五入しています。"
+      "原資料の単位は円です。アプリでは各数値を百万円単位に四捨五入しています。",
+      "前期比較には、第44期 2024年12月期の貸借対照表・損益計算書を使用しています。"
     ],
     locked: true
   },
@@ -70,8 +83,22 @@ export const seedCompanies = [
     currentLiabilities: 3739,
     cash: 1243,
     interestBearingDebt: 7624,
+    previousPeriod: "2024年12月期",
+    previousSourceFile: "financial_report_34.pdf",
+    previousRevenue: 45100,
+    previousOperatingProfit: 881,
+    previousOrdinaryProfit: 444,
+    previousNetIncome: 258,
+    previousAssets: 22792,
+    previousLiabilities: 16589,
+    previousEquity: 6203,
+    previousCurrentAssets: 3747,
+    previousCurrentLiabilities: 6297,
+    previousCash: 3022,
+    netIncomeHasOneOffGain: true,
     notes: [
       "原資料の単位は円です。アプリでは各数値を百万円単位に四捨五入しています。",
+      "前期比較には、第34期 2024年12月期の決算報告書を使用しています。",
       "当期純利益には、有価証券売却益などの特別利益1,916百万円が含まれています。企業比較では一時要因に注意してください。"
     ],
     locked: true

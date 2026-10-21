@@ -128,6 +128,7 @@ main { max-width: 1440px; margin: 0 auto; }
 .indicator-card strong { font-size: 31px; letter-spacing: -.05em; }
 .indicator-card.missing strong { color: #a7a9a2; }
 .indicator-card .formula { margin-top: 5px; color: #777b72; font-size: 10px; }
+.period-comparison { margin-top: 9px; padding: 7px 8px; background: #f1f1e9; color: #555a52; font-size: 10px; font-weight: 700; line-height: 1.45; }
 .indicator-card small { margin-top: auto; padding-top: 13px; border-top: 1px solid #e5e4dd; color: #62665e; font-size: 11px; line-height: 1.65; }
 .formula-note { display: grid; grid-template-columns: 180px 1fr; gap: 25px; padding: 20px 22px; border: 1px solid #c6c7bd; border-top: 0; background: #dedfd5; }
 .formula-note strong { font-size: 13px; }
@@ -152,6 +153,7 @@ tbody td { font-variant-numeric: tabular-nums; font-weight: 700; }
 .source-badge { font-size: 10px; letter-spacing: .09em; font-weight: 900; background: var(--accent); padding: 5px 8px; }
 .source-card h3 { font-size: 16px; margin: 10px 0 5px; }
 .source-card p, .source-card small { display: block; color: var(--muted); margin: 0; font-size: 12px; line-height: 1.75; }
+.source-card .previous-source { margin-top: 4px; color: #4e554c; font-weight: 700; }
 .source-card small { margin-top: 6px; }
 .text-button { border: 0; background: transparent; color: #a54737; font-size: 12px; text-decoration: underline; align-self: start; }
 

@@ -156,6 +156,7 @@ const stabilityIndicators = [
     key: "equityRatio",
     label: "自己資本比率",
     formula: "純資産 ÷ 総資産",
+    previousRatioKey: "previousEquityRatio",
     description: "返済不要の自己資本が総資産に占める割合。一般に高いほど財務基盤が安定しています。",
     assess: (value) => higherIsBetter(value, 50, 30)
   },
@@ -163,6 +164,7 @@ const stabilityIndicators = [
     key: "currentRatio",
     label: "流動比率",
     formula: "流動資産 ÷ 流動負債",
+    previousRatioKey: "previousCurrentRatio",
     description: "1年以内の支払いに対し、短期で現金化しやすい資産をどれだけ持つかを示します。",
     assess: (value) => higherIsBetter(value, 200, 100)
   },
@@ -170,6 +172,7 @@ const stabilityIndicators = [
     key: "currentAssetRatio",
     label: "流動資産比率",
     formula: "流動資産 ÷ 総資産",
+    previousRatioKey: "previousCurrentAssetRatio",
     description: "総資産に占める流動資産の割合。高低の良し悪しは、設備型かサービス型かなど業種で異なります。",
     assess: () => ({ label: "構成比", tone: "neutral" })
   },
@@ -177,6 +180,7 @@ const stabilityIndicators = [
     key: "debtToEquityRatio",
     label: "負債比率",
     formula: "負債合計 ÷ 純資産",
+    previousRatioKey: "previousDebtToEquityRatio",
     description: "自己資本に対して負債をどれほど利用しているかを示します。低いほど返済負担は小さくなります。",
     assess: (value) => lowerIsBetter(value, 100, 200)
   },
@@ -184,6 +188,7 @@ const stabilityIndicators = [
     key: "cashRatio",
     label: "現金比率",
     formula: "現金及び預金 ÷ 流動負債",
+    previousRatioKey: "previousCashRatio",
     description: "短期の支払いを手元現金だけでどの程度まかなえるかを見る、厳しめの安全性指標です。",
     assess: (value) => higherIsBetter(value, 100, 50)
   },
@@ -191,6 +196,7 @@ const stabilityIndicators = [
     key: "fixedRatio",
     label: "固定比率",
     formula: "固定資産 ÷ 純資産",
+    previousRatioKey: "previousFixedRatio",
     description: "長期利用する固定資産を自己資本でどの程度まかなっているかを示します。一般に低いほど安定的です。",
     assess: (value) => lowerIsBetter(value, 100, 120)
   }
@@ -201,6 +207,8 @@ const growthIndicators = [
     key: "revenueGrowth",
     label: "営業収入成長率",
     formula: "（当期－前期）÷ 前期",
+    currentValueKey: "revenue",
+    previousValueKey: "previousRevenue",
     description: "前年から営業収入がどれだけ増減したかを示します。複数年度を同じ会計基準で比べることが重要です。",
     assess: (value) => growthAssessment(value)
   },
@@ -208,8 +216,50 @@ const growthIndicators = [
     key: "operatingProfitGrowth",
     label: "営業利益成長率",
     formula: "（当期－前期）÷ 前期",
+    currentValueKey: "operatingProfit",
+    previousValueKey: "previousOperatingProfit",
     description: "本業の利益が前年からどれだけ増減したかを示します。一時要因の有無も併せて確認します。",
     assess: (value) => growthAssessment(value)
+  },
+  {
+    key: "ordinaryProfitGrowth",
+    label: "経常利益成長率",
+    formula: "（当期－前期）÷ 前期",
+    currentValueKey: "ordinaryProfit",
+    previousValueKey: "previousOrdinaryProfit",
+    description: "本業に金利などの営業外損益を加えた、通常の企業活動による利益の増減率です。",
+    assess: (value) => growthAssessment(value)
+  },
+  {
+    key: "netIncomeGrowth",
+    label: "純利益成長率",
+    formula: "（当期－前期）÷ 前期",
+    currentValueKey: "netIncome",
+    previousValueKey: "previousNetIncome",
+    description: "最終利益の増減率です。特別利益・特別損失を含むため、本業の成長率とは分けて確認します。",
+    assess: (value, company) => company.netIncomeHasOneOffGain
+      ? { label: "一時利益に注意", tone: "caution" }
+      : growthAssessment(value)
+  },
+  {
+    key: "equityGrowth",
+    label: "純資産増減率",
+    formula: "（当期－前期）÷ 前期",
+    currentValueKey: "equity",
+    previousValueKey: "previousEquity",
+    description: "返済不要の自己資本が前年からどれだけ増減したかを示し、財務基盤の変化を確認できます。",
+    assess: (value) => growthAssessment(value)
+  },
+  {
+    key: "assetsGrowth",
+    label: "総資産増減率",
+    formula: "（当期－前期）÷ 前期",
+    currentValueKey: "assets",
+    previousValueKey: "previousAssets",
+    description: "事業に使う資産規模の変化です。減少が直ちに悪いとは限らず、売却や効率化の影響も確認します。",
+    assess: (value) => Number.isFinite(value)
+      ? { label: "規模の変化", tone: "neutral" }
+      : { label: "前年値が必要", tone: "missing" }
   },
   {
     key: "roa",
@@ -271,12 +321,21 @@ function renderHealth(companies) {
 function renderIndicatorCards(definitions, company) {
   return definitions.map((indicator) => {
     const value = company[indicator.key];
-    const assessment = indicator.assess(value);
+    const assessment = indicator.assess(value, company);
+    const previousRatio = indicator.previousRatioKey ? company[indicator.previousRatioKey] : null;
+    const previousValue = indicator.previousValueKey ? company[indicator.previousValueKey] : null;
+    const currentValue = indicator.currentValueKey ? company[indicator.currentValueKey] : null;
+    const comparison = Number.isFinite(previousRatio)
+      ? `<span class="period-comparison">前期 ${formatRatio(previousRatio)} → 当期 ${formatRatio(value)}</span>`
+      : Number.isFinite(previousValue) && Number.isFinite(currentValue)
+        ? `<span class="period-comparison">前期 ${formatAmount(previousValue)} → 当期 ${formatAmount(currentValue)}百万円</span>`
+        : "";
     return `<article class="indicator-card ${assessment.tone}">
       <div class="indicator-top"><span class="assessment-dot"></span><span class="assessment">${assessment.label}</span></div>
       <p>${indicator.label}</p>
       <strong>${formatRatio(value)}</strong>
       <span class="formula">${indicator.formula}</span>
+      ${comparison}
       <small>${indicator.description}</small>
     </article>`;
   }).join("");
@@ -297,6 +356,7 @@ function renderSources(companies) {
         <span class="source-badge">${escapeHtml(company.importedFrom || "手入力")}</span>
         <h3>${escapeHtml(company.name)}</h3>
         <p>${escapeHtml(company.source)}${company.sourceFile ? ` ／ ${escapeHtml(company.sourceFile)}` : ""}</p>
+        ${company.previousSourceFile ? `<p class="previous-source">前期資料：${escapeHtml(company.previousPeriod || "前期")} ／ ${escapeHtml(company.previousSourceFile)}</p>` : ""}
         ${(company.notes || []).map((note) => `<small>${escapeHtml(note)}</small>`).join("")}
       </div>${company.locked ? "" : `<button class="text-button" data-remove-id="${company.id}" type="button">削除</button>`}
     </article>
@@ -330,7 +390,11 @@ function handleSubmit(event) {
   event.preventDefault();
   const formData = new FormData(els.form);
   const numericKeys = ["revenue", "operatingProfit", "ordinaryProfit", "netIncome", "assets", "liabilities", "equity", "currentAssets", "currentLiabilities"];
-  const optionalNumericKeys = ["cash", "previousRevenue", "previousOperatingProfit", "breakEvenRevenue"];
+  const optionalNumericKeys = [
+    "cash", "previousRevenue", "previousOperatingProfit", "previousOrdinaryProfit", "previousNetIncome",
+    "previousAssets", "previousLiabilities", "previousEquity", "previousCurrentAssets",
+    "previousCurrentLiabilities", "previousCash", "breakEvenRevenue"
+  ];
   const company = {
     id: `custom-${Date.now()}`,
     name: formData.get("name").trim(),

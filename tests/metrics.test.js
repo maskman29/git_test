@@ -71,3 +71,21 @@ test("貸借対照表の整合性を許容差内で検証する", () => {
 test("PDFから登録した全企業の貸借が一致する", () => {
   seedCompanies.forEach((company) => assert.equal(validateBalance(company), true, company.name));
 });
+
+test("合田観光商事の前期比を計算できる", () => {
+  const company = enrichCompany(seedCompanies.find((item) => item.id === "goda-kanko-2025"));
+  assert.equal(company.revenueGrowth.toFixed(1), "0.3");
+  assert.equal(company.operatingProfitGrowth.toFixed(1), "-32.8");
+  assert.equal(company.ordinaryProfitGrowth.toFixed(1), "-31.2");
+  assert.equal(company.netIncomeGrowth.toFixed(1), "-1.9");
+  assert.equal(company.equityGrowth.toFixed(1), "1.3");
+});
+
+test("正栄プロジェクトの前期比を計算できる", () => {
+  const company = enrichCompany(seedCompanies.find((item) => item.id === "shoei-project-2025"));
+  assert.equal(company.revenueGrowth.toFixed(1), "-8.8");
+  assert.equal(company.operatingProfitGrowth.toFixed(1), "-15.1");
+  assert.equal(company.ordinaryProfitGrowth.toFixed(1), "153.6");
+  assert.equal(company.netIncomeGrowth.toFixed(1), "663.6");
+  assert.equal(company.equityGrowth.toFixed(1), "20.4");
+});
