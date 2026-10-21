@@ -26,9 +26,9 @@ export const seedCompanies = [
     locked: true
   },
   {
-    id: "unnamed-45-2025",
-    name: "企業名未記載（第45期）",
-    shortName: "名称未記載・第45期",
+    id: "goda-kanko-2025",
+    name: "株式会社合田観光商事",
+    shortName: "合田観光商事",
     period: "2025年12月期",
     unit: "百万円",
     source: "第45期 2025年12月期 貸借対照表・損益計算書",
@@ -46,8 +46,7 @@ export const seedCompanies = [
     cash: 9239,
     interestBearingDebt: 8033,
     notes: [
-      "原資料の単位は円です。アプリでは各数値を百万円単位に四捨五入しています。",
-      "PDF内に企業名の記載がないため、発行企業名は未確定です。名称確認後に更新してください。"
+      "原資料の単位は円です。アプリでは各数値を百万円単位に四捨五入しています。"
     ],
     locked: true
   },
